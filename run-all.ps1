@@ -14,7 +14,8 @@ param(
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $root
 
-$isWindows = [System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform(
+# Do not use $IsWindows — it is a read-only automatic variable in PowerShell 6+.
+$useCmdHost = [System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform(
     [System.Runtime.InteropServices.OSPlatform]::Windows)
 
 dotnet build -c $Configuration
@@ -43,7 +44,7 @@ foreach ($p in $projects) {
     $tmpName = "mupdf-examples-" + [guid]::NewGuid().ToString('N') + ".log"
     $tmp = if ($env:TEMP) { Join-Path $env:TEMP $tmpName } else { Join-Path ([IO.Path]::GetTempPath()) $tmpName }
 
-    if ($isWindows) {
+    if ($useCmdHost) {
         # cmd so native AVs / stderr do not abort the PowerShell driver on Windows.
         $joined = ($argList | ForEach-Object {
             if ($_ -match '\s') { '"' + $_ + '"' } else { $_ }

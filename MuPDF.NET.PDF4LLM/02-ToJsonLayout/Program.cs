@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using MuPDF.NET.Examples.Common;
 using MuPDF.NET.PDF4LLM;
 
@@ -35,7 +36,8 @@ internal static class Program
             }
 
             MuPDF4LLM.SetUseLayout(true);
-            string json = MuPDF4LLM.ToJson(input, useOcr: false) ?? "";
+            // ToJson embeds an absolute input path; keep only the file name for portable baselines.
+            string json = NormalizeJsonFilename(MuPDF4LLM.ToJson(input, useOcr: false) ?? "", input);
             File.WriteAllText(output, json);
 
             ConsoleEx.Info($"Opened: {input}");
@@ -49,5 +51,20 @@ internal static class Program
         }
 
         check.Finish();
+    }
+
+    /// <summary>
+    /// Replace the absolute <c>filename</c> field with <see cref="Path.GetFileName"/> so Expected/
+    /// baselines do not depend on the machine checkout path.
+    /// </summary>
+    static string NormalizeJsonFilename(string json, string inputPath)
+    {
+        string name = Path.GetFileName(inputPath);
+        return Regex.Replace(
+            json,
+            "\"filename\"\\s*:\\s*\"(?:\\\\.|[^\"\\\\])*\"",
+            "\"filename\":\"" + name.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"",
+            RegexOptions.CultureInvariant,
+            TimeSpan.FromSeconds(2));
     }
 }
