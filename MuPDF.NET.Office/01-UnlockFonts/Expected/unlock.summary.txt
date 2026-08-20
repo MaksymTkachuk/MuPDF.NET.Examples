@@ -1,0 +1,3 @@
+fontDirCountMin1=true
+hasWindowsFonts=true
+unlocked=true
