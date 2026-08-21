@@ -1,4 +1,3 @@
-using System.Linq;
 using MuPDF.NET.Examples.Common;
 using MuPDF.NET.Office;
 
@@ -31,17 +30,12 @@ internal static class Program
         ConsoleEx.Info($"Key flags: 0x{flags:X}");
         ConsoleEx.Info($"Font directory count: {fonts.Count}");
 
-        // Baselines avoid absolute machine-specific font paths.
+        // Portable baseline only — absolute font paths and Windows-only dirs differ by OS.
         check.Properties(
             new Dictionary<string, string>
             {
                 ["unlocked"] = MuPDFOffice.IsUnlocked ? "true" : "false",
                 ["fontDirCountMin1"] = fonts.Count >= 1 ? "true" : "false",
-                ["hasWindowsFonts"] = fonts.Any(d =>
-                    d.EndsWith("Fonts", StringComparison.OrdinalIgnoreCase)
-                    || d.Contains("Windows\\Fonts", StringComparison.OrdinalIgnoreCase)
-                    || d.Contains("Windows/Fonts", StringComparison.OrdinalIgnoreCase))
-                    ? "true" : "false",
             },
             "unlock.summary.txt");
 

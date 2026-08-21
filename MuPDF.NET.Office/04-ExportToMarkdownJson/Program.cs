@@ -32,8 +32,10 @@ internal static class Program
         string json = File.ReadAllText(jsonOut);
         ConsoleEx.Info($"Markdown bytes: {md.Length}, JSON bytes: {json.Length}");
 
+        // Markdown text is stable across OS. JSON embeds OS-specific font names
+        // and glyph metrics — fingerprint page size + text only.
         check.Text(md, "pages.md");
-        check.Text(json, "pages.json");
+        check.Properties(OfficeJsonFingerprint.FromJson(json), "pages.summary.txt");
         check.Finish();
     }
 }

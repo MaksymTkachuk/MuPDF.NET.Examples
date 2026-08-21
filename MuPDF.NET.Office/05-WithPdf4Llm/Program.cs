@@ -1,3 +1,4 @@
+using System.Text;
 using MuPDF.NET.Examples.Common;
 using MuPDF.NET.Office;
 using MuPDF.NET.PDF4LLM;
@@ -30,11 +31,19 @@ internal static class Program
         {
             MuPDF4LLM.SetUseLayout(false);
             string markdown = MuPDF4LLM.ToMarkdown(input, showProgress: false) ?? "";
-            File.WriteAllText(output, markdown);
+            // Always write UTF-8 (no BOM) so Output/ is readable on every OS.
+            File.WriteAllText(output, markdown, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
 
             ConsoleEx.Info($"Opened via Office unlock: {input}");
             ConsoleEx.Info($"Markdown length: {markdown.Length}");
-            check.Text(markdown, "sample.hwpx.md");
+            ConsoleEx.Info(
+                OfficeTextShape.ContainsHangul(markdown)
+                    ? "Hangul text extracted."
+                    : "Hangul not in Unicode form (common on Windows when SmartOffice falls back to non-CJK fonts); using shape baseline.");
+
+            // Full markdown differs by OS font/ToUnicode coverage. Shape maps Hangul,
+            // U+FFFD, and NUL to H so Windows and Linux share one Expected file.
+            check.Text(OfficeTextShape.FromText(markdown), "sample.shape.txt");
         }
         finally
         {

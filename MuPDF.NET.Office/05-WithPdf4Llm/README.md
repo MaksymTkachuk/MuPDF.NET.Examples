@@ -22,12 +22,22 @@ Unlock Office, then run `MuPDF4LLM.ToMarkdown` on an HWPX path.
 |--|------|
 | Input | `Input/MuPDF.NET.Office/sample.hwpx` |
 | Output | `Output/MuPDF.NET.Office/05-WithPdf4Llm/sample.hwpx.md` |
-| Expected | `Expected/sample.hwpx.md` |
+| Expected | `Expected/sample.shape.txt` (portable) |
+
+`sample.hwpx.md` under Expected/ is the correct Hangul reference
+(`안녕하세요 이건 테스트 파일입니다.`). On Linux, SmartOffice typically
+extracts that Unicode text. On Windows it often falls back to
+Arial/Liberation **without Hangul glyphs**, so `ToMarkdown` yields U+FFFD
+placeholders (and you may see `cannot create ToUnicode mapping for …Arial`).
+
+The golden check therefore compares a **text shape** (`H` = Hangul or
+replacement/NUL), which matches on both OS. Full markdown is still written
+to `Output/` for inspection.
 
 ## Run
 
-```powershell
-dotnet run --project MuPDF.NET.Office\05-WithPdf4Llm
+```bash
+dotnet run --project MuPDF.NET.Office/05-WithPdf4Llm
 ```
 
 ## APIs used

@@ -24,9 +24,11 @@ Unlock Office document support and inspect font search directories.
 
 ## Run
 
-```powershell
-dotnet run --project MuPDF.NET.Office\01-UnlockFonts
+```bash
+dotnet run --project MuPDF.NET.Office/01-UnlockFonts
 ```
+
+Expected `unlock.summary.txt` checks only portable keys (`unlocked`, `fontDirCountMin1`) so the same baseline passes on Windows, Linux, and macOS.
 
 ## APIs used
 
