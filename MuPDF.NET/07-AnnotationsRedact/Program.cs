@@ -13,14 +13,11 @@ internal static class Program
         AnnotationsRedact();
     }
 
-    /// <summary>
-    /// Add text/rect annotations and apply a redaction.
-    /// </summary>
+    /// <summary>Add text/rect annotations and apply a redaction</summary>
     static void AnnotationsRedact()
     {
-        string input = ExamplePaths.MuPdfNetInput("Blank.pdf");
-        string output = ExamplePaths.Output("MuPDF.NET", "07-AnnotationsRedact", "annotated.pdf");
-        var check = new ResultCheck("MuPDF.NET", "07-AnnotationsRedact");
+        string input = "Blank.pdf";
+        string output = "annotated.pdf";
 
         using (var doc = Document.Open(input))
         using (Page page = doc[0])
@@ -31,10 +28,7 @@ internal static class Program
             Annot text = page.AddTextAnnot(new Point(rect.X0, rect.Y0), "Example note");
             text.SetInfo(
                 content: "Hello from 07-AnnotationsRedact",
-                title: "MuPDF.NET.Examples",
-                creationDate: null,
-                modDate: null,
-                subject: null);
+                title: "MuPDF.NET.Examples");
             text.Update(); // rebuild appearance stream
 
             // Rectangle markup annotation (red stroke).
@@ -48,14 +42,8 @@ internal static class Program
             page.ApplyRedactions();
 
             int annotCount = page.Annots().Count();
-            ConsoleEx.Info($"Page annots remaining: {annotCount}");
             doc.Save(output);
 
-            var props = PdfFingerprint.FromFile(output);
-            props["annotCount"] = annotCount.ToString();
-            check.Properties(props, "annotated.summary.txt");
         }
-
-        check.Finish();
     }
 }

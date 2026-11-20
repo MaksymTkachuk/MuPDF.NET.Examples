@@ -1,6 +1,8 @@
 # MuPDF.NET.Examples
 
-Customer-facing sample apps for **[MuPDF.NET](https://www.nuget.org/packages/MuPDF.NET)**, **[MuPDF.NET.PDF4LLM](https://www.nuget.org/packages/MuPDF.NET.PDF4LLM)**, and **[MuPDF.NET.Office](https://www.nuget.org/packages/MuPDF.NET.Office)**.
+Customer-facing sample apps for **[MuPDF.NET](https://mupdf.com/mupdf-dotnet) 4.1** and **[MuPDF.NET.Office](https://mupdf.com/mupdf-dotnet/office) 2.1.0**.
+
+Markdown / JSON / text extract (`Document.ToMarkdown`, `ToJson`, `ToText`, `ToChunks`) and RAG helpers (`Utils.LoadAiAsync`, `Utils.LlamaMarkdownReader`, `Utils.MarkdownToPdf`) are in **MuPDF.NET 4.1**. Samples `PackageReference` **MuPDF.NET** and **MuPDF.NET.Office** only.
 
 Each feature is a small console project. Packages are referenced via **NuGet only**.
 
@@ -16,15 +18,17 @@ cd MuPDF.NET.Examples
 dotnet restore
 ```
 
-Package versions are pinned in [`Versions.props`](Versions.props). [`NuGet.Config`](NuGet.Config) uses a repo-local **`LocalNuget/`** folder (optional pre-release packages) and **nuget.org**. On Windows you can symlink `LocalNuget` → `D:\Artifex\LocalNuget` if you pack there.
+Package versions are pinned in [`Versions.props`](Versions.props). [`NuGet.Config`](NuGet.Config) restores from the repo-local **`LocalNuget/`** folder, then **nuget.org**.
 
 ## Layout
 
 | Path | Role |
 |------|------|
+| [`docs/`](docs/index.html) | HTML how-to help (start at [`docs/index.html`](docs/index.html)) |
 | `Common/` | Paths, `ResultCheck`, PDF fingerprints |
 | `Input/` | Fixtures (committed) |
 | `Output/` | Generated files (gitignored) |
+| `artifacts/` | Shared `bin/` / `obj/` for all samples (gitignored) |
 | `{product}/{NN-Name}/Expected/` | Golden baselines (committed) |
 | `run-all.cmd` / `run-all.ps1` / `run-all.sh` | Batch PASS/FAIL/SKIP runner |
 | `LocalNuget/` | Optional local `.nupkg` drop folder |
@@ -36,7 +40,9 @@ Package versions are pinned in [`Versions.props`](Versions.props). [`NuGet.Confi
 - .NET 8 SDK (Windows, Linux, or macOS)
 - Packages from [nuget.org](https://www.nuget.org/) (see `Versions.props`)
 - Optional `MUPDF_OFFICE_KEY` for Office unlock
-- `02-ToJsonLayout` / `03-ToText`: optional [pymupdf-layout](https://pypi.org/project/pymupdf-layout/) for layout mode
+- `33-ToJsonLayout` / `34-ToText` / `35-ToChunks`: optional layout worker needs **Python 3.11+** (Ubuntu 22.04: `sudo apt install python3.11 python3.11-venv python3.11-full`) then `dotnet msbuild -t:MuPDFNetSetupLayoutPython` — [MuPDF.NET README — Layout analysis](https://github.com/ArtifexSoftware/MuPDF.NET#layout-analysis-optional)
+- `41-LoadAi`: optional `AZURE_OPENAI_*` (and `AZURE_SEARCH_*`) for a live model; default run needs no keys
+- `42-Ollama` / `43-OllamaMagazines`: local [Ollama](https://ollama.com) (`ollama pull mistral` and `ollama pull nomic-embed-text`); SKIP when Ollama is not running — see `MuPDF.NET/42-Ollama/README.md`
 
 ## Run (compare against Expected/)
 
@@ -45,7 +51,7 @@ dotnet restore
 .\run-all.cmd          # Windows
 # or: .\run-all.ps1
 # or one project:
-dotnet run --project MuPDF.NET\01-OpenSave
+dotnet run --project MuPDF.NET\01-Basic
 ```
 
 ```bash
@@ -54,7 +60,7 @@ dotnet restore
 chmod +x ./run-all.sh
 ./run-all.sh
 # or: pwsh ./run-all.ps1
-dotnet run --project MuPDF.NET/01-OpenSave
+dotnet run --project MuPDF.NET/01-Basic
 ```
 
 ## Refresh baselines after a trusted package upgrade
@@ -63,7 +69,7 @@ dotnet run --project MuPDF.NET/01-OpenSave
 .\run-all.cmd --update-expected
 # or: .\run-all.ps1 -UpdateExpected
 # or:
-dotnet run --project MuPDF.NET\01-OpenSave -- --update-expected
+dotnet run --project MuPDF.NET\01-Basic -- --update-expected
 ```
 
 ## What is compared
@@ -87,17 +93,20 @@ Each project folder has its own `README.md` (what it shows, inputs, how to run, 
 | ICC soft proof, separations, overprint | `19-ColorManagement` |
 | Place a new image on a page | `09-InsertImage` |
 | Swap an existing image xref | `17-ReplaceImage` |
+| Extract embedded images to files | `21-ExtractImages` |
 | Downsample / recompress images | `20-RewriteImages` |
+| Compress PDF streams on save | `25-CompressSave` |
+| Page file attachment annot | `30-FileAnnot` (vs `13-EmbeddedFiles`) |
+| Render many files/pages in parallel | `31-ParallelPixmap` (vs sequential `03-RenderPixmap`) |
 
 | Product | Projects |
 |---------|----------|
-| MuPDF.NET | Open/Save, Pages, Render, Text, **Recolor**, **Color management/print**, Story/HTML, Annotations, Widgets, **Insert image**, Outline/Links, Tables, Barcodes, Embedded files, Metadata, TextWriter, Draw shapes, **Replace image**, ZUGFeRD, **Rewrite images** |
-| MuPDF.NET.PDF4LLM | Markdown, JSON layout, Plain text, OCR, Tables→CSV, Llama markdown reader, GetKeyValues, Markdown→PDF |
-| MuPDF.NET.Office | Unlock/fonts, Open HWPX/DOCX, Export PDF, Export MD/JSON, With PDF4LLM |
+| MuPDF.NET | Open/Save, Pages, Render, Parallel pixmap, Text, Recolor, Story/HTML, Annotations, Widgets, Insert/Replace/Extract images, Outline/Links, Tables, Barcodes, Embedded files, Metadata, TextWriter, Draw shapes, ZUGFeRD, Color management, Rewrite images, GetDrawings, Rotate/Crop, Encrypt, Compress, Watermark, Image→PDF, Image filters, Page ops, File annot, Markdown, JSON layout, Plain text, OCR, Tables→CSV, Llama markdown reader, GetKeyValues, Markdown→PDF, LoadAi (RAG ask/search), Ollama capitals, Ollama magazines, Retrieval chunks |
+| MuPDF.NET.Office | Unlock/fonts, Open HWPX/DOCX, Export PDF, Export MD/JSON, Unlock then `Document.ToMarkdown` |
 
 ## Versions
 
-Edit `Versions.props` only.
+Edit `Versions.props` only. Current pins: MuPDF.NET **4.1.1**, Office **2.1.0**. Restore looks in `LocalNuget/`, then nuget.org.
 
 ## License
 
